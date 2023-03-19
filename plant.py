@@ -1,3 +1,11 @@
+'''
+Author: Scott Underwood
+Date: 02/28/2023
+
+This script contains a class Plant which can be used 
+to determine optimal operation of a wind plus storage 
+system.
+'''
 import numpy as np
 import pandas as pd
 
@@ -7,8 +15,22 @@ EPSILON = 0.3
 DELTA_CHARGE = 10 # charge bins are 10 MWh apart
 N_ITER = 50
 
+
 class Plant:
+    '''
+    This class contains methods to implement Q-learning 
+    for a wind plus storage plant and determine the 
+    optimal action for each state in the input data.
+
+    To create an instance of this class:
+    Plant(input_data, bins_file)
+    '''
     def __init__(self, input_data, bins_file):
+        '''
+        The __init__ method initializes the class 
+        attributes, including initializing the policies 
+        and value functions to appropriate values.
+        '''
         self.df = pd.read_csv(input_data)
         self.df['policy'] = 0
         self.lmp_avg = self.df['LMP'].mean()
@@ -40,6 +62,18 @@ class Plant:
 
 
     def get_possible_actions(self, state):
+        '''
+        This method takes a state dictionary as an input 
+        and returns a list of the possible actions from 
+        the given state.
+
+        Inputs:
+            state (dict): current state
+        
+        Outputs:
+            possible_actions (list): list of possible actions 
+                from provided state
+        '''
         charge_ind = state['charge']
 
         possible_actions = []
@@ -58,6 +92,17 @@ class Plant:
     
 
     def get_next_charge(self, charge_ind, action):
+        '''
+        This method takes a current charge and action 
+        and returns the next charge state.
+
+        Inputs:
+            charge_ind (int): current charge state
+            action (int): action to be taken
+        
+        Outputs:
+            charge_ind (int): next charge state
+        '''
         # if discharging battery, reduce charge
         if action == 0:
             charge_ind -= 1
@@ -72,6 +117,19 @@ class Plant:
 
 
     def calc_reward(self, state, action):
+        '''
+        This method takes a state dictionary and an 
+        action as inputs and returns the reward from 
+        taking the action in the provided state.
+
+        Inputs:
+            state (dict): current state
+            action (int): action to be taken
+        
+        Outputs:
+            reward (float): reward from taking action in 
+                provided state
+        '''
         delta_lmp = (self.lmp_avg - self.lmp_bins[state['lmp']])*1000 # kWh to MWh
         E_wind = self.power_bins[state['power']]/4 # 15 minute intervals, so divide by 4 to get MWh
 
@@ -92,6 +150,12 @@ class Plant:
 
 
     def Q_learning(self):
+        '''
+        This method performs Q-learning on the dataset. This 
+        involves iterating through each of the data points 
+        and updating the value function using an epsilon-greedy 
+        exploration policy.
+        '''
         charge_ind = 4 # initialize to middle charging state
 
         # iterate through each row
@@ -152,6 +216,11 @@ class Plant:
 
 
     def implement_policy(self):
+        '''
+        This method iterates through each data point, 
+        implementing the optimal policy and adjusting 
+        the next charge state accordingly.
+        '''
         charge_ind = self.df.loc[0, 'charge_binned']
 
         for index, row in self.df.copy().iterrows():
@@ -171,9 +240,11 @@ def main():
     bins_file = 'bins.npz'
 
     P = Plant(input_file, bins_file)
+    # iterate through Q-learning to convergence
     for _ in range(N_ITER):
         P.Q_learning()
     P.implement_policy()
+    # output policies
     P.df.to_csv('policies.csv', index=False)
 
 

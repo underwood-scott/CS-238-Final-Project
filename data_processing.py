@@ -1,7 +1,17 @@
+'''
+Author: Scott Underwood
+Date: 02/28/2023
+
+This script takes in ERCOT time series data for generation by 
+fuel type and LMP for calendar year 2022. It then cleans the 
+data, discretizes LMP and power into bins, and outputs the 
+data to be used in plant.py.
+'''
 import datetime
 from datetime import timedelta
 import numpy as np
 import pandas as pd
+
 
 # read in lmp data
 lmp_sheets = pd.read_excel("ERCOT_LMP_2022.xlsx", sheet_name = None)
