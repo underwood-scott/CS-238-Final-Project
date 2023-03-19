@@ -51,5 +51,5 @@ plt.savefig('hourly_rev.jpg')
 # plot pie chart of actions
 action_counts = df['policy'].value_counts()
 plt.figure(2)
-plt.pie(action_counts, labels = ['Hold', 'Charge', 'Discharge'])
+plt.pie(action_counts, labels = ['Hold', 'Charge', 'Discharge'], autopct='%1.1f%%')
 plt.savefig('action_pie.jpg')
